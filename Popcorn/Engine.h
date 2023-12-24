@@ -34,6 +34,8 @@ public:
     
     
 private:
+    void Play_Level();
+    void Restart_Level();
     void Act();
     void On_Falling_Letter(AFalling_Letter* falling_letter);
     EGame_State Game_State;

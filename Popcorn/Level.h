@@ -18,6 +18,7 @@ public:
     virtual bool Check_Hit(double next_x_pos, double next_y_pos, ABall* ball);
     void Act();
     void Draw(HDC hdc, RECT& paint_area);
+    void Stop();
     bool Get_Next_Falling_Letter(int &index, AFalling_Letter **falling_letter);
    
     static char Level_01[AsConfig::Level_Height][AsConfig::Level_Width];
@@ -34,10 +35,13 @@ private:
     void Act_Objects(int& object_count, const int object_max_count, AGraphics_Object** object_array);
     void Draw_Objects(HDC hdc, RECT& paint_area, int object_max_count, AGraphics_Object** object_array);
     void Clear_Objects(HDC hdc, RECT& paint_area, int object_max_count, AGraphics_Object** object_array);
+    void Delete_Objects(int& object_count, int object_max_count, AGraphics_Object** object_array);
     bool On_Hit(int brick_x, int brick_y, ABall* ball, bool vertical_hit);
     bool Add_Falling_Letter(int brick_x, int brick_y, EBrick_Type brick_type);
     bool Create_Active_Brick(int brick_x, int brick_y, EBrick_Type brick_type, ABall* ball, bool vertical_hit);
     void Add_New_Active_Brick(AActive_Brick* active_brick);
+    void Cancel_All_Activity();
+
     RECT Level_Rect;
     double Current_Brick_Bottom_Y, Current_Brick_Top_Y;
     double Current_Brick_Left_X, Current_Brick_Right_X;
@@ -50,6 +54,7 @@ private:
     int Teleport_Bricks_Count;
     SPoint *Teleport_Bricks_Pos;
     AAdvertisement *Advertisement;
+    bool Need_To_Cancel_All;
     
 
 };

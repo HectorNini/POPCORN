@@ -57,12 +57,14 @@ AsLevel::AsLevel()
     Current_Brick_Top_Y(0),  Level_Rect{}, 
     Active_Bricks_Count(0), Falling_Letters{},
     Parachute_Color(AsConfig::Red_Color, AsConfig::Blue_Color, AsConfig::Global_Scale),
-    Teleport_Bricks_Pos(0), Teleport_Bricks_Count(0), Advertisement(0)
+    Teleport_Bricks_Pos(0), Teleport_Bricks_Count(0), Advertisement(0),
+    Need_To_Cancel_All(false)
 {
 }
 //---------------------------------------------------------------------------------------------------------
 AsLevel::~AsLevel()
 {
+    Cancel_All_Activity();
     delete[] Teleport_Bricks_Pos;
 }
 //---------------------------------------------------------------------------------------------------------
@@ -575,6 +577,12 @@ void AsLevel::Draw(HDC hdc, RECT& paint_area)
     if (Advertisement != 0)
         Advertisement->Clear(hdc, paint_area);
 
+    if (Need_To_Cancel_All)
+    {
+        Cancel_All_Activity();
+        Need_To_Cancel_All = false;
+    }
+
     //2. Рисуем все объекты
     if (Advertisement != 0)
         Advertisement->Draw(hdc, paint_area);
@@ -718,5 +726,30 @@ void AsLevel::Draw_Parachute_Part(HDC hdc, RECT& brick_rect, int offset, int wid
     rect.bottom += 3 * scale;
 
     AsConfig::Round_Rect(hdc, rect);
+}
+//---------------------------------------------------------------------------------------------------------
+void AsLevel::Stop()
+{
+    Need_To_Cancel_All = true;
+}
+//---------------------------------------------------------------------------------------------------------
+void AsLevel::Cancel_All_Activity()
+{
+    Delete_Objects(Active_Bricks_Count, AsConfig::Max_Active_Bricks_Count, (AGraphics_Object**)&Active_Bricks);
+    Delete_Objects(Falling_Letters_Count, AsConfig::Max_Falling_Letters_Count, (AGraphics_Object**)&Falling_Letters);
+}
+//---------------------------------------------------------------------------------------------------------
+void AsLevel::Delete_Objects(int& object_count, int object_max_count, AGraphics_Object** object_array)
+{
+    for (int i = 0; i < object_max_count; i++)
+    {
+        if (object_array[i] != 0)
+        {
+            delete object_array[i];
+            object_array[i] = 0;
+
+        }
+    }
+    object_count = 0;
 }
 //---------------------------------------------------------------------------------------------------------
