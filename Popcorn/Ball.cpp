@@ -195,11 +195,11 @@ void ABall::Move()
 
     Prev_Ball_Rect = Ball_Rect;
     Rest_Distance += Ball_Speed; 
-    while (Rest_Distance >= AsConfig::Ball_Step_Size)
+    while (Rest_Distance >= AsConfig::Moving_Step_Size)
     {
         got_hit = false;
-        next_x_pos = Center_X_Pos + AsConfig::Ball_Step_Size * cos(Ball_Direction);
-        next_y_pos = Center_Y_Pos - AsConfig::Ball_Step_Size * sin(Ball_Direction);
+        next_x_pos = Center_X_Pos + AsConfig::Moving_Step_Size * cos(Ball_Direction);
+        next_y_pos = Center_Y_Pos - AsConfig::Moving_Step_Size * sin(Ball_Direction);
         for (int i = 0; i < Hit_Checkers_Count;i++)
             got_hit |= Hit_Checkers[i]->Check_Hit(next_x_pos, next_y_pos, this);
 
@@ -207,12 +207,12 @@ void ABall::Move()
 
         if (!got_hit) 
         {//Мяч продолжит движение, если не взаимодейтсвовал с другими объектами
-            Rest_Distance -= AsConfig::Ball_Step_Size;
+            Rest_Distance -= AsConfig::Moving_Step_Size;
             Center_X_Pos = next_x_pos;
             Center_Y_Pos = next_y_pos;
 
             if (Testing_Is_Active)
-                Rest_Test_Distance -= AsConfig::Ball_Step_Size;
+                Rest_Test_Distance -= AsConfig::Moving_Step_Size;
         }
 
         if (Ball_State == EBS_Lost)
@@ -234,10 +234,10 @@ void ABall::Move()
 void ABall::Redraw_Ball()
 {
 
-    Ball_Rect.left = (int)((Center_X_Pos - Radius) * AsConfig::Global_Scale);
-    Ball_Rect.top = (int)((Center_Y_Pos - Radius) * AsConfig::Global_Scale);
-    Ball_Rect.right = (int)((Center_X_Pos + Radius) * AsConfig::Global_Scale);
-    Ball_Rect.bottom = (int)((Center_Y_Pos + Radius) * AsConfig::Global_Scale);
+    Ball_Rect.left = (int)((Center_X_Pos - Radius) * AsConfig::D_Global_Scale);
+    Ball_Rect.top = (int)((Center_Y_Pos - Radius) * AsConfig::D_Global_Scale);
+    Ball_Rect.right = (int)((Center_X_Pos + Radius) * AsConfig::D_Global_Scale);
+    Ball_Rect.bottom = (int)((Center_Y_Pos + Radius) * AsConfig::D_Global_Scale);
     InvalidateRect(AsConfig::Hwnd, &Prev_Ball_Rect, FALSE);
     InvalidateRect(AsConfig::Hwnd, &Ball_Rect, FALSE);
 }

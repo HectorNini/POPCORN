@@ -39,6 +39,7 @@ public:
     static const int Border_X_Offset = 6;
     static const int Border_Y_Offset = 4;
     static const int Global_Scale = 3;
+    static const double D_Global_Scale;
     static const int Level_X_Offset = 8;
     static const int Level_Y_Offset = 6;
     static const int Level_Width = 12;  //Ширина в блоках
@@ -51,7 +52,7 @@ public:
     static const int FPS = 20;
     static const int Brick_Width = 15;
     static const int Brick_Height = 7;
-    static const double Ball_Step_Size;
+    static const double Moving_Step_Size;
     static HWND Hwnd;
     static const int Max_Active_Bricks_Count = 10;
     static const int Max_Falling_Letters_Count = 10;

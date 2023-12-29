@@ -42,27 +42,25 @@ void AsEngine::Draw_Frame(HDC hdc, RECT& paint_area)
     //Ball.Draw(hdc, paint_area);
 }
 //---------------------------------------------------------------------------------------------------------
-int AsEngine::On_Key_Down(EKey_Type key_type) 
+int AsEngine::On_Key(EKey_Type key_type, bool key_down)
 {
-
-
-
     switch (key_type) 
     {
     case EKT_Left:
-        Platform.Move(true);
+        Platform.Move(true, key_down);
         break;
     case EKT_Right:
-        Platform.Move(false);
+        Platform.Move(false, key_down);
         break;
     case EKT_Space:
-        if (Platform.Get_State() == EPS_Ready) 
-        {
-            for (int i = 0; i < AsConfig::Max_Balls_Count; i++)
-                if (Balls[i].Get_State() == EBS_On_Platform)
-                    Balls[i].Set_State(EBS_Normal, Platform.X_Pos + Platform.Width / 2, AsConfig::Start_Y_Pos);
-            Platform.Set_State(EPS_Normal);
-        }
+        if (key_down)
+            if (Platform.Get_State() == EPS_Ready)
+            {
+                for (int i = 0; i < AsConfig::Max_Balls_Count; i++)
+                    if (Balls[i].Get_State() == EBS_On_Platform)
+                        Balls[i].Set_State(EBS_Normal, Platform.Get_Middle_Pos(), AsConfig::Start_Y_Pos);
+                Platform.Set_State(EPS_Normal);
+            }
         break;
     }
 
@@ -136,7 +134,23 @@ void AsEngine::Play_Level()
 {
     int active_balls_count = 0;
     int lost_balls_count = 0;
+    double rest_distance;
+    double max_speed;
+    //1. Смещение платформы
 
+    max_speed = fabs(Platform.Speed);
+
+    rest_distance = max_speed;
+    
+    while (rest_distance > 0.0)
+    {
+        Platform.Advance(max_speed);
+        rest_distance -= AsConfig::Moving_Step_Size;
+    }
+
+    Platform.Redraw();
+
+    //2. Смещение мячиков
     for (int i = 0; i < AsConfig::Max_Balls_Count; i++)
     {
         if (Balls[i].Get_State() == EBS_Disabled)
@@ -173,7 +187,7 @@ void AsEngine::Restart_Level()
    
     Game_State = EGS_Play_Level;
     for (i = 0; i < 3; i++)
-        Balls[i].Set_State(EBS_On_Platform, Platform.X_Pos + Platform.Width / 2, AsConfig::Start_Y_Pos);
+        Balls[i].Set_State(EBS_On_Platform, Platform.Get_Middle_Pos(), AsConfig::Start_Y_Pos);
 
     for (; i < AsConfig::Max_Balls_Count; i++)
         Balls[i].Set_State(EBS_Disabled);

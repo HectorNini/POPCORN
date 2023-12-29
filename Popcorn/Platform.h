@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Falling_Letter.h"
-enum EPlatform_State {
+enum EPlatform_State 
+{
     EPS_Missing,
     EPS_Ready,
     EPS_Normal,
@@ -8,7 +9,17 @@ enum EPlatform_State {
     EPS_Roll_In,
     EPS_Expand_Roll_In
 };
-class AsPlatform: public AHit_Checker {
+
+enum EPlatform_Moving_State
+{
+    EPMS_Stop,
+    EPMS_Moving_Left,
+    EPMS_Moving_Right
+
+};
+
+class AsPlatform: public AHit_Checker 
+{
 public:
     AsPlatform();
     ~AsPlatform();
@@ -19,10 +30,12 @@ public:
     void Redraw();
     void Draw(HDC hdc, RECT& paint_area);
     bool Hit_By(AFalling_Letter *falling_letter);
-    void Move(bool to_left);
-    int X_Pos;
+    void Move(bool to_left, bool key_down);
+    void Advance(double max_speed);
+    double Get_Middle_Pos();
     int Width;
-    int X_Step;
+    double Speed;
+    
 private:  
     bool Reflect_On_Circle(double next_x_pos, double next_y_pos, double platform_ball_x_offset, ABall* ball);
     void Clear_BG(HDC hdc);
@@ -32,7 +45,9 @@ private:
     bool Get_Platform_Image_Stroke_Color(int x, int y, const AColor** color, int& stroke_len);
     void Draw_Roll_In_State(HDC hdc, RECT& paint_area);
     void Draw_Expanding_Roll_In_State(HDC hdc, RECT& paint_area);
+    void Get_Normal_Platform_Image(HDC hdc);
     EPlatform_State Platform_State;
+    EPlatform_Moving_State Platform_Moving_State;
     static const int Normal_Width = 28;   
     static const int Circle_Size = 7;
     static const int Normal_Inner_Width = Normal_Width - Circle_Size;
@@ -41,10 +56,13 @@ private:
     static const int Max_Rolling_Step = 16;
     static const int Roll_In_Platform_End_X_Pos = 99;
     static const int Rolling_Platform_Speed = 3;
+    static const int X_Step = AsConfig::Global_Scale * 2;
     int Normal_Platform_Image_Width, Normal_Platform_Image_Height;
     int Inner_Width;
     int Meltdown_Platform_Y_Pos[Normal_Width * AsConfig::Global_Scale];
-    int Rolling_Step;  
+    int Rolling_Step;
+    double X_Pos;
+
     int *Normal_Platform_Image; //Пиксели изображения платформы
     RECT Platform_Rect, Prev_Platform_Rect;
     AColor Highlight_Color, Platform_Circle_Color, Platform_Inner_Color;

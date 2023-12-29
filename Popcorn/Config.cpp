@@ -72,8 +72,9 @@ const AColor AsConfig::Advertisement_Blue_Table(0, 159, 159, AsConfig::Global_Sc
 
 
 
-const double AsConfig::Ball_Step_Size = 1.0 / Global_Scale;
+const double AsConfig::Moving_Step_Size = 1.0 / Global_Scale;
 const double AsConfig::Start_Y_Pos = 184.0;
+const double AsConfig::D_Global_Scale = (double)Global_Scale;
 int AsConfig::Current_Timer_Tick = 0;
 bool AsConfig::Level_Has_Floor = false;
 HWND AsConfig::Hwnd;

@@ -7,12 +7,13 @@
 AsPlatform::AsPlatform()
     : 
     Rolling_Step(0),
+    Speed(0.0),
     Meltdown_Platform_Y_Pos{},
-    Platform_State(EPS_Missing), 
+    Platform_State(EPS_Missing),
+    Platform_Moving_State(EPMS_Stop),
     Inner_Width(Normal_Inner_Width),
     Width(Normal_Width),
     X_Pos(AsConfig::Border_X_Offset),
-    X_Step(AsConfig::Global_Scale * 2),  
     Platform_Rect{}, 
     Prev_Platform_Rect{},
     Normal_Platform_Image(0),
@@ -74,28 +75,45 @@ _on_hit:
     return true;
 }
 //---------------------------------------------------------------------------------------
-void AsPlatform::Move(bool to_left)
+void AsPlatform::Move(bool to_left, bool key_down)
 {
     if (Platform_State != EPS_Normal)
         return;
 
     if (to_left)
     {
-        X_Pos -= X_Step;
+        if (Platform_Moving_State == EPMS_Moving_Left) 
+        {
+            if (!key_down) 
+            {
+                Speed = 0.0;
+                Platform_Moving_State = EPMS_Stop;
+                return;
+            }
+        }
+        else
+            Platform_Moving_State = EPMS_Moving_Left;
 
-        if (X_Pos <= AsConfig::Border_X_Offset)
-            X_Pos = AsConfig::Border_X_Offset;
+        Speed = -X_Step;
 
-        Redraw();
     }
     else
     {
-        X_Pos += X_Step;
+        if (Platform_Moving_State == EPMS_Moving_Right)
+        {
+            if (!key_down)
+            {
+                Speed = 0.0;
+                Platform_Moving_State = EPMS_Stop;
+                return;
+            }
+        }
+        else
+            Platform_Moving_State = EPMS_Moving_Right;
 
-        if (X_Pos >= AsConfig::Max_X_Pos - Width + 1)
-            X_Pos = AsConfig::Max_X_Pos - Width + 1;
+        Speed = X_Step;
 
-        Redraw();
+       
     }
 }
 //---------------------------------------------------------------------------------------
@@ -124,7 +142,7 @@ bool AsPlatform::Reflect_On_Circle(double next_x_pos, double next_y_pos,double p
     distance = sqrt(dx * dx + dy * dy);
     two_radiuses = platform_ball_radius + ball->Radius;
 
-    if (fabs(distance - two_radiuses) < AsConfig::Ball_Step_Size)
+    if (fabs(distance - two_radiuses) < AsConfig::Moving_Step_Size)
     {
         beta = atan2(-dy, dx);
 
@@ -203,7 +221,7 @@ void AsPlatform::Redraw()
         platform_width = Width;
 
 
-    Platform_Rect.left = X_Pos * AsConfig::Global_Scale;
+    Platform_Rect.left = (int)(X_Pos * AsConfig::D_Global_Scale);
     Platform_Rect.top = AsConfig::Platform_Y_Pos * AsConfig::Global_Scale;
     Platform_Rect.right = Platform_Rect.left + platform_width * AsConfig::Global_Scale;
     Platform_Rect.bottom = Platform_Rect.top + Height * AsConfig::Global_Scale;
@@ -276,40 +294,58 @@ void AsPlatform::Draw_Circle_Highlight(HDC hdc, int x, int y)
 void AsPlatform::Draw_Normal_State(HDC hdc,  RECT& paint_area)
 {
     //Отрисовка платформы в нормальном состоянии
-    int x = X_Pos, y = AsConfig::Platform_Y_Pos;
-    int offset = 0;
-    RECT inner_rect;
+    double x = X_Pos; 
+    int y = AsConfig::Platform_Y_Pos;
+    const int scale = AsConfig::Global_Scale;
+    const double d_scale = AsConfig::D_Global_Scale;
+    RECT inner_rect, rect;
     Clear_BG(hdc);
     //1. Рисуем боковые шарики
     Platform_Circle_Color.Select(hdc);
-    Ellipse(hdc, x * AsConfig::Global_Scale, y * AsConfig::Global_Scale, (x + Circle_Size) * AsConfig::Global_Scale - 1, (y + Circle_Size) * AsConfig::Global_Scale  - 1);
-    Ellipse(hdc, (x + Inner_Width) * AsConfig::Global_Scale, y * AsConfig::Global_Scale, (x + Circle_Size + Inner_Width) * AsConfig::Global_Scale - 1, (y + Circle_Size) * AsConfig::Global_Scale - 1);
+
+    rect.left = (int)(x * d_scale);
+    rect.top = y * scale;
+    rect.right = (int)((x + (double)Circle_Size) * d_scale - 1.0);
+    rect.bottom = (y + Circle_Size) * scale - 1;
+    Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
+
+
+    rect.left = (int)((x + (double)Inner_Width) * d_scale);
+    rect.right = (int)((x + (double)Circle_Size + (double)Inner_Width) * d_scale - 1.0);
+
+    Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
     //2. Рисуем блик
-    Draw_Circle_Highlight(hdc, x * AsConfig::Global_Scale, y * AsConfig::Global_Scale);
+    Draw_Circle_Highlight(hdc, (int)(x * d_scale), y * scale);
     //3. Рисуем внутреннюю платформу
     Platform_Inner_Color.Select(hdc);
-    inner_rect.left = (x + 4) * AsConfig::Global_Scale;
-    inner_rect.top = (y + 1) * AsConfig::Global_Scale;
-    inner_rect.right = (x + 4 + Inner_Width - 1) * AsConfig::Global_Scale - 1;
-    inner_rect.bottom = (y + 1 + 5) * AsConfig::Global_Scale;
+    inner_rect.left = (int)((x + 4.0) * d_scale);
+    inner_rect.top = (y + 1) * scale;
+    inner_rect.right = (int)((x + 4.0 + (double)Inner_Width - 1.0) * d_scale - 1.0);
+    inner_rect.bottom = (y + 1 + 5) * scale;
     AsConfig::Round_Rect(hdc, inner_rect, 3);
 
-
-    x *= AsConfig::Global_Scale;
-    y *= AsConfig::Global_Scale;
-
     if (Normal_Platform_Image == 0 && Platform_State == EPS_Ready)
-    {
-        Normal_Platform_Image_Width = Width * AsConfig::Global_Scale;
-        Normal_Platform_Image_Height = Height * AsConfig::Global_Scale;
-
-        Normal_Platform_Image = new int[Normal_Platform_Image_Width* Normal_Platform_Image_Height];
+        Get_Normal_Platform_Image(hdc);
     
-        for (int i = 0; i < Normal_Platform_Image_Height ; i++)
-            for (int j = 0; j < Normal_Platform_Image_Width; j++)
-                Normal_Platform_Image[offset++] = GetPixel(hdc, x + j, y + i);
+}
 
-    }
+//---------------------------------------------------------------------------------------------------------
+void AsPlatform::Get_Normal_Platform_Image(HDC hdc)
+{
+    int x = (int)(X_Pos * AsConfig::D_Global_Scale);
+    int y = AsConfig::Platform_Y_Pos * AsConfig::Global_Scale;
+    int offset = 0;
+    
+
+    Normal_Platform_Image_Width = Width * AsConfig::Global_Scale;
+    Normal_Platform_Image_Height = Height * AsConfig::Global_Scale;
+    
+    Normal_Platform_Image = new int[Normal_Platform_Image_Width * Normal_Platform_Image_Height];
+    
+    for (int i = 0; i < Normal_Platform_Image_Height; i++)
+        for (int j = 0; j < Normal_Platform_Image_Width; j++)
+            Normal_Platform_Image[offset++] = GetPixel(hdc, (int)(x + (double)j), y + i);
+
 }
 
 //---------------------------------------------------------------------------------------------------------
@@ -402,7 +438,7 @@ void AsPlatform::Draw_Roll_In_State(HDC hdc, RECT& paint_area)
 {
 
     int x, y;
-    x = X_Pos * AsConfig::Global_Scale;
+    x = (int)(X_Pos * AsConfig::D_Global_Scale);
     y = AsConfig::Platform_Y_Pos * AsConfig::Global_Scale;
 
     int roller_size = Circle_Size * AsConfig::Global_Scale;
@@ -468,6 +504,27 @@ void AsPlatform::Draw_Expanding_Roll_In_State(HDC hdc, RECT& paint_area)
         Redraw();
     }
         
+}
+//---------------------------------------------------------------------------------------------------------
+void AsPlatform::Advance(double max_speed)
+{
+    double max_platform_x = AsConfig::Max_X_Pos - Width + 1;
+    double min_platform_x = AsConfig::Border_X_Offset;
+    X_Pos += Speed / max_speed * AsConfig::Moving_Step_Size;
+
+
+
+    if (X_Pos <= min_platform_x)
+        X_Pos = min_platform_x;
+
+    if (X_Pos >= max_platform_x)
+        X_Pos = max_platform_x;
+
+}
+//---------------------------------------------------------------------------------------------------------
+double AsPlatform::Get_Middle_Pos()
+{
+    return X_Pos + (double)Width / 2.0;
 }
 
 

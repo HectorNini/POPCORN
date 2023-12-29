@@ -163,15 +163,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-	case WM_KEYDOWN:
 
+	case WM_KEYDOWN:
 		switch (wParam) {
 		case VK_LEFT:
-			return Engine.On_Key_Down(EKT_Left);
+			return Engine.On_Key(EKT_Left, true);
 		case VK_RIGHT:
-			return Engine.On_Key_Down(EKT_Right);
+			return Engine.On_Key(EKT_Right, true);
 		case VK_SPACE:
-			return Engine.On_Key_Down(EKT_Space);
+			return Engine.On_Key(EKT_Space, true);
+		}
+		break;
+
+	case WM_KEYUP:
+		switch (wParam) {
+		case VK_LEFT:
+			return Engine.On_Key(EKT_Left, false);
+		case VK_RIGHT:
+			return Engine.On_Key(EKT_Right, false);
+		case VK_SPACE:
+			return Engine.On_Key(EKT_Space, false);
 		}
 		break;
 
