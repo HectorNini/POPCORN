@@ -5,14 +5,16 @@
 #include "Platform.h"
 //---------------------------------------------------------------------------------------
 
-enum EKey_Type {
+enum EKey_Type 
+{
     EKT_Left,
     EKT_Right,
     EKT_Space
 };
 
 
-enum EGame_State {
+enum EGame_State 
+{
     EGS_Test_Ball,
 
     EGS_Play_Level,
@@ -23,7 +25,31 @@ enum EGame_State {
 //---------------------------------------------------------------------------------------
 const int Timer_ID = WM_USER + 1;
 
-class AsEngine {
+//---------------------------------------------------------------------------------------
+
+class AsBall_Set : public AMover
+{
+public:
+    virtual void Advance(double max_speed);
+    virtual double Get_Speed();
+    virtual void Begin_Movement();
+    virtual void Finish_Movement();
+    void Draw(HDC hdc, RECT& paint_area);
+    void Release_From_Platform(double platform_x_pos);
+    void Set_On_Platform(double platform_x_pos);
+    bool All_Balls_Are_Lost();
+    void Set_For_Test();
+    bool Is_Test_Finished();
+
+private:
+    ABall Balls[AsConfig::Max_Balls_Count];
+
+};
+
+//---------------------------------------------------------------------------------------
+
+class AsEngine 
+{
 public:
     AsEngine();
     void Init_Engine(HWND hWnd);
@@ -35,13 +61,14 @@ public:
     
 private:
     void Play_Level();
-    void Restart_Level();
+    void Advance_Movers();
     void Act();
     void On_Falling_Letter(AFalling_Letter* falling_letter);
     EGame_State Game_State;
-    //ABall Ball;
-    ABall Balls[AsConfig::Max_Balls_Count];
+    double Rest_Distance;
+    AsBall_Set Ball_Set;
     AsLevel Level;
     AsPlatform Platform;
     AsBorder Border;
+    AMover *Movers[AsConfig::Max_Movers_Count];
 };

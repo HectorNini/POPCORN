@@ -56,8 +56,9 @@ public:
     static HWND Hwnd;
     static const int Max_Active_Bricks_Count = 10;
     static const int Max_Falling_Letters_Count = 10;
-    static const int Hits_Per_Letter = 2;
-    static const int Max_Balls_Count = 10;
+    static const int Hits_Per_Letter = 1;
+    static const int Max_Balls_Count = 40;
+    static const int Max_Movers_Count = 10;
     static const double Start_Y_Pos;
     
 };

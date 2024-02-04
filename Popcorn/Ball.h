@@ -11,6 +11,20 @@ public:
 };
 
 //---------------------------------------------------------------------------------------
+class AMover
+{
+public:
+    virtual ~AMover();
+    virtual void Begin_Movement() = 0;
+    virtual void Finish_Movement() = 0;
+    virtual void Advance(double max_speed) = 0;
+    virtual double Get_Speed() = 0;
+
+
+};
+
+
+//---------------------------------------------------------------------------------------
 
 enum EBall_State 
 {
@@ -22,12 +36,17 @@ enum EBall_State
     EBS_Off_Parachute,
     EBS_Teleporting
 };
-class ABall 
+
+
+class ABall : public AMover
 {
 public:
-    ABall();
+    ABall();   
+    virtual void Begin_Movement();
+    virtual void Finish_Movement();
+    virtual double Get_Speed();
+    virtual void Advance(double max_speed);
     void Draw(HDC hdc, RECT& paint_area);
-    void Move();
     void Set_For_Test();
     bool Is_Test_Finished();
     EBall_State Get_State();
@@ -43,10 +62,11 @@ public:
     static void Add_Hit_Checker(AHit_Checker * hit_checker);
     static const double Radius;
 
-
+    RECT Ball_Rect, Prev_Ball_Rect, Parachute_Rect, Prev_Parachute_Rect;
 
 
 private:
+
     void Redraw_Ball();
     void Draw_Parachute(HDC hdc, RECT &paint_area);
     void Redraw_Parachute();
@@ -56,12 +76,13 @@ private:
     static int Hit_Checkers_Count;
     static AHit_Checker* Hit_Checkers[3];
     EBall_State Ball_State, Prev_Ball_State;
-    double Ball_Speed;
+    
     double Ball_Direction;
-    double Rest_Distance;
+    double Ball_Speed;
+    //double Rest_Distance;
     double Center_X_Pos, Center_Y_Pos;
     double Rest_Test_Distance;
     int Test_Iteration;
     bool Testing_Is_Active;
-    RECT Ball_Rect, Prev_Ball_Rect, Parachute_Rect, Prev_Parachute_Rect;
+    
 };

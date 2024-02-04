@@ -6,8 +6,8 @@
 
 AsPlatform::AsPlatform()
     : 
+    Speed(0),
     Rolling_Step(0),
-    Speed(0.0),
     Meltdown_Platform_Y_Pos{},
     Platform_State(EPS_Missing),
     Platform_Moving_State(EPMS_Stop),
@@ -142,7 +142,8 @@ bool AsPlatform::Reflect_On_Circle(double next_x_pos, double next_y_pos,double p
     distance = sqrt(dx * dx + dy * dy);
     two_radiuses = platform_ball_radius + ball->Radius;
 
-    if (fabs(distance - two_radiuses) < AsConfig::Moving_Step_Size)
+    //if (fabs(distance - two_radiuses) < AsConfig::Moving_Step_Size)
+    if (distance + AsConfig::Moving_Step_Size < two_radiuses)
     {
         beta = atan2(-dy, dx);
 
@@ -506,11 +507,26 @@ void AsPlatform::Draw_Expanding_Roll_In_State(HDC hdc, RECT& paint_area)
         
 }
 //---------------------------------------------------------------------------------------------------------
+void AsPlatform::Begin_Movement()
+{
+
+}
+//---------------------------------------------------------------------------------------------------------
+
+void AsPlatform::Finish_Movement()
+{
+    Redraw();
+}
+//---------------------------------------------------------------------------------------------------------
+
+
 void AsPlatform::Advance(double max_speed)
 {
     double max_platform_x = AsConfig::Max_X_Pos - Width + 1;
     double min_platform_x = AsConfig::Border_X_Offset;
-    X_Pos += Speed / max_speed * AsConfig::Moving_Step_Size;
+    double next_step = Speed / max_speed * AsConfig::Moving_Step_Size;
+
+    X_Pos += next_step;
 
 
 
@@ -528,4 +544,10 @@ double AsPlatform::Get_Middle_Pos()
 }
 
 
+//---------------------------------------------------------------------------------------------------------
+
+double AsPlatform::Get_Speed()
+{
+    return Speed;
+}
 //---------------------------------------------------------------------------------------------------------
